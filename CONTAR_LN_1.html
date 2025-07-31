@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANALYZER - FINAL AUDITED BUILD</title>
+    <style>
+        /* PROTOCOLO CERO - COMPILACION AUDITADA FINAL */
+        
+        /* 1. FUNDAMENTOS */
+        :root {
+            --color-background: #0A0A0A; --color-background-element: #141414; --color-background-function-key: #2A2A2A;
+            --color-text: #B0B0B0; --color-text-bright: #FFFFFF; --color-accent: #00FFFF;
+            --color-accent-bios: #00FF8A; --color-error: #FF4141;
+            --font-main: 'Consolas', 'Menlo', 'Courier New', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; overflow: hidden; background-color: var(--color-background); color: var(--color-text); font-family: var(--font-main); user-select: none; }
+
+        /* 2. EFECTOS Y ESTRUCTURA GLOBAL */
+        #app-container { width: 100%; height: 100%; display: flex; padding: 1vw; position: relative; }
+        #app-container::after { /* SCANLINE */
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 1px, transparent 1px, transparent 2px);
+            pointer-events: none; z-index: 100;
+        }
+        .chromatic-aberration { text-shadow: 1px 0 1px rgba(255,0,0,0.3), -1px 0 1px rgba(0,255,255,0.3); }
+        @keyframes powerOn { from { opacity: 0; filter: brightness(3); } to { opacity: 1; filter: brightness(1); } }
+        .screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2rem; animation: powerOn 0.4s; }
+        .hidden { display: none !important; }
+
+        /* 3. PANTALLAS DE FLUJO INICIAL */
+        #screen-bios p { font-size: clamp(1rem, 2vw, 1.5rem); color: var(--color-accent-bios); }
+        #screen-title h1 { font-size: clamp(2.5rem, 8vw, 8rem); letter-spacing: 0.5vw; text-align: center; }
+        #screen-title p { font-size: clamp(1rem, 2vw, 1.5rem); color: var(--color-accent); animation: blink-text 1.5s step-end infinite; }
+        @keyframes blink-text { 50% { opacity: 0.5; } }
+        #screen-name { justify-content: space-around; }
+        #name-display-container { border-bottom: 2px solid var(--color-text); width: 90vw; max-width: 1000px; padding: 1rem; text-align: center; }
+        #name-display-text { font-size: clamp(2rem, 5vw, 4rem); letter-spacing: 1vw; color: var(--color-text-bright); min-height: 4rem; word-wrap: break-word; }
+        #keyboard-matrix30 { display: grid; grid-template-columns: repeat(10, 1fr); gap: clamp(3px, 1.5vw, 8px); width: 98vw; max-width: 1200px; padding: 1vw; }
+        .key { display: flex; justify-content: center; align-items: center; background-color: var(--color-background-element); font-size: clamp(0.7rem, 2.8vw, 2rem); aspect-ratio: 1.2 / 1; cursor: pointer; transition: none; }
+        .key:hover { background-color: var(--color-accent); color: var(--color-background); }
+        .key[data-key="SHIFT"], .key[data-key="<-"], .key[data-key="ENTER"], .key[data-key="_"], .key[data-key="@"] { background-color: var(--color-background-function-key); }
+        .key.shift-active { border: 2px solid var(--color-accent); color: var(--color-accent); }
+
+        /* 4. SELECCION DE MISION - CORREGIDO */
+        #mission-selection-container {
+            display: flex; flex-wrap: wrap; /* CORRECCION DE LAYOUT PARA ESCRITORIO */
+            justify-content: center; align-items: center; gap: 2rem;
+            width: 90%; max-width: 1200px;
+        }
+        .mission-button {
+            position: relative; background-color: var(--color-background-element); border: 2px solid var(--color-text);
+            color: var(--color-text); font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            width: clamp(300px, 40%, 500px); /* Ancho flexible */
+            height: clamp(100px, 20vh, 150px);
+            cursor: pointer; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 1rem;
+        }
+        .mission-button:hover { border-color: var(--color-accent); color: var(--color-accent); }
+        .mission-button .glyph { position: relative; width: 40px; height: 30px; }
+        #glyph-letters::before, #glyph-letters::after { content: ''; position: absolute; background-color: var(--color-text); width: 15%; height: 100%; }
+        #glyph-letters::before { transform: rotate(20deg); left: 20%; } #glyph-letters::after { transform: rotate(-20deg); right: 20%; }
+        .mission-button:hover #glyph-letters::before, .mission-button:hover #glyph-letters::after { background-color: var(--color-accent); }
+        #glyph-numbers { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 15%; width: 100%; height: 100%; }
+        #glyph-numbers div { background-color: var(--color-text); }
+        .mission-button:hover #glyph-numbers div { background-color: var(--color-accent); }
+
+        /* 5. PANTALLA DE JUEGO Y VICTORIA */
+        #analyzer-screen, #victory-screen { justify-content: space-between; }
+        #game-directive { height: 15%; width: 100%; border: 1px solid var(--color-accent); display: flex; justify-content: center; align-items: center; text-align: center; padding: 0 1rem; font-size: clamp(1rem, 3vw, 2.2rem); }
+        #game-directive-target { font-size: clamp(1.5rem, 4.5vw, 3.5rem); color: var(--color-accent); margin: 0 1ch; }
+        #game-grid { height: 75%; width: 100%; display: grid; padding: 1vw; gap: 1vw; transition: opacity 0.2s ease-in-out; }
+        .grid-cell { background-color: var(--color-background-element); display: flex; justify-content: center; align-items: center; font-size: clamp(1.5rem, 5vw, 4rem); cursor: pointer; }
+        .grid-cell.identificado { background-color: var(--color-accent); color: var(--color-background); cursor: not-allowed; }
+        .grid-cell.error { animation: shake 0.3s; background-color: var(--color-error); }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        #game-progress { height: 10%; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 2vw; font-size: clamp(1rem, 2.5vw, 1.8rem); }
+        #progress-bar-container { width: 40%; height: 2rem; border: 1px solid var(--color-text); }
+        #progress-bar-fill { width: 0%; height: 100%; background-color: var(--color-accent); }
+        
+        #victory-screen { justify-content: center; gap: 2rem; text-align: center; }
+        #victory-title { font-size: clamp(1.8rem, 4vw, 3.5rem); color: var(--color-accent); }
+        #victory-score-final { font-size: clamp(2.5rem, 6vw, 5rem); }
+        #victory-summary { font-size: clamp(1rem, 2vw, 1.5rem); line-height: 1.8; border: 1px solid var(--color-text); padding: 1rem 2rem; }
+        #restart-button { margin-top: 1rem; font-size: clamp(1.2rem, 2.5vw, 2rem); padding: 1rem 2rem; border: 2px solid var(--color-text); background-color: var(--color-background-element); color: var(--color-text); cursor: pointer; }
+        #restart-button:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- PANTALLAS DEL FLUJO PRINCIPAL (ESTÁTICAS) -->
+        <div id="screen-bios" class="screen"></div>
+        <div id="screen-title" class="screen hidden"><h1 class="chromatic-aberration">ANALIZADOR MATRICIAL</h1><p class="chromatic-aberration">[ CLIC O PULSE UNA TECLA PARA INICIAR ]</p></div>
+        <div id="screen-name" class="screen hidden"><div id="name-display-container"><p>INGRESE IDENTIFICADOR:</p><div id="name-display-text" class="chromatic-aberration"></div></div><div id="keyboard-matrix30"></div></div>
+        <div id="screen-selection" class="screen hidden"><h2>SELECCIONE MODO DE ANÁLISIS</h2><div id="mission-selection-container"><button class="mission-button" data-mode="letters"><div class="glyph" id="glyph-letters"></div>ANALIZAR LETRAS</button><button class="mission-button" data-mode="numbers"><div class="glyph" id="glyph-numbers"><div></div><div></div><div></div><div></div></div>ANALIZAR NÚMEROS</button></div></div>
+        <div id="analyzer-screen" class="screen hidden"><div id="game-directive"></div><div id="game-grid"></div><div id="game-progress"></div></div>
+        <div id="victory-screen" class="screen hidden"><h2 id="victory-title" class="chromatic-aberration">== CICLO DE DOMINIO COMPLETADO ==</h2><div><p id="victory-operator"></p><p>PUNTUACIÓN FINAL:</p><h3 id="victory-score-final" class="chromatic-aberration"></h3></div><div id="victory-summary"><p id="summary-missions"></p><p id="summary-bonuses"></p></div><button id="restart-button">[ REGRESAR A SELECCIÓN ]</button></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    
+        const appState = {
+            operatorName: '', isShiftActive: true, firstKeyTyped: false,
+            score: 0, currentMission: 1, totalMissions: 10, precisionBonusCount: 0,
+            errorsThisMission: false, currentMode: 'letters',
+            mission: { target: null, total: 0, found: 0, gridSize: { cols: 5, rows: 4 } }
+        };
+        const SYMBOLS = { letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', numbers: '0123456789' };
+
+        // --- CACHÉ DE ELEMENTOS DOM ESTÁTICOS ---
+        const dom = {
+            screens: { bios: document.getElementById('screen-bios'), title: document.getElementById('screen-title'), name: document.getElementById('screen-name'), selection: document.getElementById('screen-selection'), game: document.getElementById('analyzer-screen'), victory: document.getElementById('victory-screen') },
+            nameDisplay: document.getElementById('name-display-text'),
+            keyboard: document.getElementById('keyboard-matrix30'),
+            missionSelection: document.getElementById('mission-selection-container'),
+            game: { directive: document.getElementById('game-directive'), grid: document.getElementById('game-grid'), progress: document.getElementById('game-progress') },
+            victory: { operator: document.getElementById('victory-operator'), score: document.getElementById('victory-score-final'), missions: document.getElementById('summary-missions'), bonuses: document.getElementById('summary-bonuses'), restartBtn: document.getElementById('restart-button') }
+        };
+
+        // --- LÓGICA DE FLUJO PRINCIPAL ---
+        function navigateTo(screenId) {
+            if (document.fullscreenElement === null && screenId !== 'bios') { document.body.requestFullscreen().catch(err => console.log(`FS Fail: ${err.message}`)); }
+            Object.values(dom.screens).forEach(s => s.classList.add('hidden'));
+            dom.screens[screenId].classList.remove('hidden');
+        }
+
+        async function runBiosSequence() {
+            const lines = ["> PROTOCOLO CERO v2.8 INICIANDO...", "> VERIFICANDO INTEGRIDAD DEL DOM... [OK]", "> RESTAURANDO ARQUITECTURA DE FLUJO... [OK]", "> CARGANDO MODULO DE ANALISIS MATRICIAL... [OK]", "> SISTEMA LISTO."];
+            dom.screens.bios.innerHTML = '';
+            for (const line of lines) { await new Promise(r => setTimeout(r, 300)); const p = document.createElement('p'); p.textContent = line; dom.screens.bios.appendChild(p); }
+            await new Promise(r => setTimeout(r, 500)); navigateTo('title');
+        }
+        
+        // --- PANTALLA DE NOMBRE Y TECLADO ---
+        function setupKeyboard() {
+            const keysLayout = ['Q','W','E','R','T','Y','U','I','O','<-','A','S','D','F','G','H','J','K','L','ENTER','SHIFT','Z','X','C','V','B','N','M','_','@'];
+            dom.keyboard.innerHTML = '';
+            keysLayout.forEach(key => { const keyEl = document.createElement('div'); keyEl.className = 'key'; keyEl.dataset.key = key; if (key.length === 1) keyEl.textContent = appState.isShiftActive ? key.toUpperCase() : key.toLowerCase(); else keyEl.textContent = key; if (key === 'SHIFT' && appState.isShiftActive) keyEl.classList.add('shift-active'); dom.keyboard.appendChild(keyEl); });
+        }
+        function updateKeyboardCase() {
+            dom.keyboard.querySelectorAll('.key').forEach(keyEl => { const key = keyEl.dataset.key; if (key.length === 1) keyEl.textContent = appState.isShiftActive ? key.toUpperCase() : key.toLowerCase(); });
+            dom.keyboard.querySelector('[data-key="SHIFT"]').classList.toggle('shift-active', appState.isShiftActive);
+        }
+
+        // --- CICLO DE JUEGO ---
+        function resetGame() {
+            appState.score = 0; appState.currentMission = 1; appState.precisionBonusCount = 0;
+            generateMission();
+        }
+
+        function generateMission() {
+            appState.errorsThisMission = false;
+            const sourceSymbols = SYMBOLS[appState.currentMode];
+            appState.mission.target = sourceSymbols.charAt(Math.floor(Math.random() * sourceSymbols.length));
+            appState.mission.total = Math.floor(Math.random() * 4) + 4;
+            appState.mission.found = 0;
+            renderMission();
+        }
+        
+        function renderMission() {
+            dom.game.directive.innerHTML = `<span id="mission-counter">MISIÓN ${appState.currentMission}/${appState.totalMissions} |</span><span id="directive-text">LOCALIZAR [${appState.mission.total}]</span><span id="game-directive-target" class="chromatic-aberration">${appState.mission.target}</span>`;
+            dom.game.grid.innerHTML = ''; // Clear only the grid
+            dom.game.grid.style.opacity = 1;
+            dom.game.grid.style.gridTemplateColumns = `repeat(${appState.mission.gridSize.cols}, 1fr)`; // Ensure grid layout
+            const gridSize = appState.mission.gridSize.cols * appState.mission.gridSize.rows;
+            const gridSymbols = Array(appState.mission.total).fill(appState.mission.target);
+            while (gridSymbols.length < gridSize) { let s = SYMBOLS[appState.currentMode].charAt(Math.floor(Math.random() * SYMBOLS[appState.currentMode].length)); if (s !== appState.mission.target) gridSymbols.push(s); }
+            gridSymbols.sort(() => Math.random() - 0.5).forEach(s => { const c = document.createElement('div'); c.className = 'grid-cell'; c.textContent = s; c.dataset.symbol = s; dom.game.grid.appendChild(c); });
+            updateUI();
+        }
+
+        function updateUI() {
+            dom.game.progress.innerHTML = `<span id="score-display">PUNTUACIÓN: ${appState.score}</span><div id="progress-bar-container"><div id="progress-bar-fill" style="width:${(appState.mission.found/appState.mission.total)*100}%"></div></div><span id="progress-text">${appState.mission.found}/${appState.mission.total}</span>`;
+        }
+        
+        function populateVictoryScreen() {
+            dom.victory.operator.textContent = `OPERADOR: ${appState.operatorName}`;
+            dom.victory.score.textContent = appState.score;
+            dom.victory.missions.textContent = `SUB-MISIONES COMPLETADAS: ${appState.totalMissions}/${appState.totalMissions}`;
+            dom.victory.bonuses.textContent = `BONOS DE PRECISIÓN OBTENIDOS: ${appState.precisionBonusCount}`;
+            navigateTo('victory');
+        }
+
+        // --- MANEJADORES DE EVENTOS (EVENT LISTENERS) ---
+        function initialize() {
+            // Navegación Inicial
+            const initListener = () => { document.removeEventListener('keydown', initListener); navigateTo('name'); setupKeyboard(); };
+            dom.screens.title.addEventListener('click', initListener, { once: true });
+            document.addEventListener('keydown', initListener, { once: true });
+            
+            // Teclado (Delegación de eventos)
+            dom.keyboard.addEventListener('click', e => {
+                const keyEl = e.target.closest('.key'); if (!keyEl) return;
+                const key = keyEl.dataset.key;
+                if (key === 'ENTER') { if (appState.operatorName) navigateTo('selection'); }
+                else if (key === '<-') { appState.operatorName = appState.operatorName.slice(0, -1); }
+                else if (key === 'SHIFT') { appState.isShiftActive = !appState.isShiftActive; updateKeyboardCase(); }
+                else if (appState.operatorName.length < 20) { appState.operatorName += appState.isShiftActive ? key.toUpperCase() : key.toLowerCase(); if (!appState.firstKeyTyped) { appState.isShiftActive = false; appState.firstKeyTyped = true; updateKeyboardCase(); } }
+                dom.nameDisplay.textContent = appState.operatorName;
+            });
+            
+            // Selección de Misión (Delegación de eventos)
+            dom.missionSelection.addEventListener('click', e => {
+                const button = e.target.closest('.mission-button');
+                if (!button) return;
+                appState.currentMode = button.dataset.mode;
+                navigateTo('game');
+                resetGame();
+            });
+
+            // Pantalla de Juego (Delegación de eventos)
+            dom.screens.game.addEventListener('click', e => {
+                const cell = e.target.closest('.grid-cell'); if (!cell || cell.classList.contains('identificado')) return;
+                if (cell.dataset.symbol === appState.mission.target) {
+                    appState.score += 100; appState.mission.found++; cell.classList.add('identificado');
+                    if (appState.mission.found === appState.mission.total) {
+                        if (!appState.errorsThisMission) { appState.score += 500; appState.precisionBonusCount++; }
+                        if (appState.currentMission >= appState.totalMissions) {
+                            populateVictoryScreen();
+                        } else {
+                            appState.currentMission++; dom.game.grid.style.opacity = 0; setTimeout(generateMission, 400);
+                        }
+                    }
+                } else {
+                    appState.score = Math.max(0, appState.score - 25); appState.errorsThisMission = true;
+                    cell.classList.add('error'); setTimeout(() => cell.classList.remove('error'), 300);
+                }
+                updateUI();
+            });
+            
+            // Pantalla de Victoria
+            dom.victory.restartBtn.addEventListener('click', () => navigateTo('selection'));
+
+            // Iniciar secuencia
+            runBiosSequence();
+        }
+
+        initialize();
+    });
+    </script>
+</body>
+</html>
